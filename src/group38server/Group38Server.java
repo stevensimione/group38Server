@@ -69,6 +69,9 @@ public class Group38Server {
 				createGroupsTable(conn);
 				System.out.println("\nSUCCESS: "+
 						"Created Groups table");
+                                insertGroups(conn);
+				System.out.println("\nSUCCESS: "+
+						"Inserted 5 groups");                                
 			}
 		}catch (SQLException ex) {
 			System.out.println("SQLException: "+ 
@@ -112,12 +115,17 @@ public class Group38Server {
     }
 		 */
 	}
-	private static void createPostsTable(Connection con)
+	private static void createPostsTable(Connection con)    // CEdit4 This table has been expanded
 			throws SQLException {
 		String sql = 
 				"CREATE TABLE POSTS " +
-						"(postID INTEGER NOT NULL, " +
-						"Item VARCHAR (255) NOT NULL  )";         
+						"(postID INTEGER NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+                                                "inGroup VARCHAR (255) NOT NULL, "+
+                                                "subject VARCHAR (32660), "+
+                                                "body VARCHAR (32660), "+
+                                                "authorID INTEGER NOT NULL, "+  // It must be userID, not user name
+                                                "tStamp INTEGER NOT NULL, "+
+						"isNew SMALLINT NOT NULL  )";         
 		Statement stmt = null;
 		try {
 			stmt = con.createStatement();
@@ -128,12 +136,26 @@ public class Group38Server {
 				if (stmt != null) { stmt.close(); }
 			}
 	}
-	private static void createGroupsTable(Connection con)
+	private static void createGroupsTable(Connection con)   // CEdit4 This has also been changed somewhat
 			throws SQLException {
 		String sql = 
 				"CREATE TABLE GROUPS " +
-						"(groupID INTEGER NOT NULL, " +
+						"(groupID INTEGER NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
 						"gName VARCHAR (255) NOT NULL  )";         
+		Statement stmt = null;
+		try {
+			stmt = con.createStatement();
+			stmt.executeUpdate(sql);
+		} catch (SQLException e) {
+			System.out.println("SQLException: " + e.getMessage());
+			e.printStackTrace();    } finally {
+				if (stmt != null) { stmt.close(); }
+			}
+	}
+	private static void insertGroups(Connection con) // CEdit4 This will create 5 groups
+			throws SQLException {
+		String sql = 
+		"INSERT INTO GROUPS (gName) VALUES ('comp.programming'), ('comp.os.threads'), ('comp.lang.c'), ('comp.lang.python'), ('comp.lang.javascript')";       
 		Statement stmt = null;
 		try {
 			stmt = con.createStatement();
