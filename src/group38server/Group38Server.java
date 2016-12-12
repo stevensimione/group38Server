@@ -167,6 +167,7 @@ class ServeOneClientThreadStatus extends Thread {
     // dontActivate is a switch that prevents the program from going into 'invalid entry' early and causing an infinite loop
     int clientMinusOne = clientNumber - 1;  //unused
     String userName = "";   //keeps track of the current users name
+    String[] commandAndArgs;    // CEdit 2
     String nameRequest = "\nType in your User Name:";
     try{
      DataInputStream isFromClient = new DataInputStream(
@@ -229,7 +230,7 @@ class ServeOneClientThreadStatus extends Thread {
             }            
          }
          userName = reply;
-         dontActivate =1;
+         dontActivate = 1;
          dontAllowReply = 1;
          status = 3;    //End of Log-In stuff (go to 'else if' with status 3)
        }
@@ -238,10 +239,18 @@ class ServeOneClientThreadStatus extends Thread {
            System.out.println("Now in status 3");   // For Debugging        
            stringToClient = "What would you like to do "+userName+"?: ";
            reply = reply.trim().toUpperCase();
-           if( reply.equalsIgnoreCase("LOGIN") ){
+           // CEdit 2 Beggining            
+           commandAndArgs = reply.split("\\s+");       // Splits by space; Command is 0 while 1+ are args   
+           if( commandAndArgs[0].equalsIgnoreCase("LOGIN") ){   // CEdit 2 End
                status = 0;
                dontAllowReply = 1;
            }
+           // CEdit 2 Begginging
+           else if( commandAndArgs[0].equalsIgnoreCase("SG") ){
+               status = 6;
+               dontAllowReply = 1;
+           }
+           // CEdit 2 End
            else if(dontActivate == 0){
                stringToClient = "INVALID ENTRY.";
                stringToClient += "\nWhat would you like to do "+userName+"?: ";
@@ -249,6 +258,15 @@ class ServeOneClientThreadStatus extends Thread {
            }
            dontActivate = 0;
        }
+       // CEdit 2 Beggining
+       else if(status == 6){
+           reply = "NOSG";
+           System.out.print("Nothing in command SG yet.");
+           dontActivate = 1;
+           dontAllowReply = 1;
+           status = 3;
+       }
+       // CEdit 2 End
        
        //The code below sends and recieves things to and from the client.
        if(dontAllowReply == 0){
