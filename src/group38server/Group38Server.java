@@ -11,6 +11,7 @@ package group38server;
  */
 import java.io.*; 
 import java.net.*; 
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.Objects;
 
@@ -19,7 +20,7 @@ public class Group38Server {
 	/**
 	 * @param args the command line arguments
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws URISyntaxException {
 		Connection conn = createDbTableStudents();
 		int clientNumber = 0;
 		try
@@ -45,9 +46,20 @@ public class Group38Server {
 			System.out.println(e);
 		}
 	}
-	private static Connection createDbTableStudents() {
+	private static Connection createDbTableStudents() throws URISyntaxException {
+                // CEdit5 This change is so that the path is not hard-coded
+                File file = new File("derbypath.txt");
+                String absolutePath = file.getAbsolutePath();
+                System.out.print(absolutePath);
+                String derby1 = "derby\\";
+                if(absolutePath.substring(0, 1).equals("/"))
+                {
+                    derby1 = "derby/";
+                }
+                System.out.print(absolutePath.substring(0, 1));
+                String aPath = absolutePath.replace("derbypath.txt", derby1);
 		Connection conn = null;
-		String path = "c:\\derby\\";
+		String path = aPath;    // CEdit5
 		String driver = "derby";
 		String dbName = "Assignment";
 		String connectionURL="jdbc:"+driver+":"+
@@ -284,13 +296,14 @@ class ServeOneClientThreadStatus extends Thread {
 					}
 					if(commandAndArgs[0].equalsIgnoreCase("LOGIN")) // login command to create a new user.
 					{
-						status = 0;	// CEdit3 Got rid of 'writeToClient = true', logging in works properly				
+						status = 0;	
+                                                writeToClient = false;  // CEdit5 Added this since we dont want to repeat after login has been executed
 					}
 					else if(commandAndArgs[0].equalsIgnoreCase("LOGOUT"))//logout and close.
                                         {
                                                 stringToClient = "Have a nice day"; // CEdit3 See lines 39-41 in group38Client
 						status = 2;
-                                                writeToClient = true;   // CEdit3  This is set to true since the client will not read again after logging out.
+                                                writeToClient = true;   
                                         }
 					else if(commandAndArgs[0].equalsIgnoreCase("HELP"))//print help
 					{
@@ -317,10 +330,16 @@ class ServeOneClientThreadStatus extends Thread {
 						status = 6;
 						writeToClient = false;
 					}
+                                        else if(commandAndArgs[0].equalsIgnoreCase("BADREPLY")) //CEdit5 Added so that an invalid command will not loop
+                                        {
+                                            stringToClient = "Invalid command, please type a valid command.";
+                                            stringToClient += "\nWhat would you like to do "+userName+"?: ";
+                                            writeToClient = true;
+                                        }
 					else
-					{
-						stringToClient += "\nInvalid command, please type a valid command.";
+					{						
 						writeToClient = false;
+                                                reply = "badreply"; // CEdit5 Reply will not be sent to the client
 					}
 				}
 				else if(status == 4)
@@ -400,7 +419,7 @@ class ServeOneClientThreadStatus extends Thread {
 					osToClient.writeUTF(stringToClient);
 					osToClient.flush();
 					reply = isFromClient.readUTF();
-					writeToClient = false;
+					writeToClient = true;
 				}
 				
 				System.out.println("String received from "+
